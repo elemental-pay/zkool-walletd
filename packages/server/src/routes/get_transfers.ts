@@ -2,7 +2,7 @@ import { Router } from "express";
 import { Client } from "graphql-ws";
 
 import { getAccount, getTransfers } from "../db.js";
-import { gqlLatestHeight, gqlTransactionsByAccount } from "../graphql.js";
+import { gqlLatestHeight } from "../graphql.js";
 import { Transfer } from "../db.js";
 
 interface SubaddrIndex {

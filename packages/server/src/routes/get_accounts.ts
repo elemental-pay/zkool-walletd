@@ -23,6 +23,7 @@ interface GetAccountsResponse {
   total_unlocked_balance: number;
 }
 
+// Zkool returns BigDecimal balances as integer zatoshi strings (e.g. "12345")
 function toZatoshi(raw: string): number {
   return parseInt(raw, 10) || 0;
 }
@@ -35,7 +36,7 @@ export function getAccountsRouter(client: Client): Router {
       const { tag }: GetAccountsRequest = req.body ?? {};
 
       let accounts = getAllAccounts();
-      console.log({ accounts })
+      console.debug({ accounts })
 
       if (tag) {
         accounts = accounts.filter((a) => a.label?.startsWith(tag));

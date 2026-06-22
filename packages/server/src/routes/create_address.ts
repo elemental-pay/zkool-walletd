@@ -33,10 +33,10 @@ export function createAddressRouter(client: Client): Router {
 
       // Ask the GraphQL server for a fresh diversified address
       const { ua, sapling, orchard } = await gqlNewAddresses(client, account_index);
-      console.log({ ua, sapling, orchard })
+      console.debug({ ua, sapling, orchard })
 
       const subAccount = nextSubAccount(account_index);
-      console.log({ subAccount });
+      console.debug({ subAccount });
       const idAddress = insertAddress(
         account_index,
         subAccount,

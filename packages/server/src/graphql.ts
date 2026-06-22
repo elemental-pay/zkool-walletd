@@ -167,38 +167,6 @@ export interface GqlTransaction {
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
-// type Note {
-//   id: Int!
-//   height: Int!
-//   pool: Int!
-//   value: BigDecimal!
-//   address: String!
-//   scope: Int!
-//   diversifier: String!
-//   memo: String
-//   tx: Transaction!
-// }
-
-// type Transaction {
-//   id: Int!
-//   txid: String!
-//   account: Account!
-//   height: Int!
-//   time: LocalDateTime!
-//   value: BigDecimal!
-//   fee: BigDecimal!
-//   notes: [Note!]!
-//   outputs: [Output!]!
-//   spends: [Note!]!
-// }
-
-        // amount
-        // fee
-        // height
-        // confirmations
-        // address
-        // addressIndex
-
 export async function gqlTransactionById(
   client: Client,
   idAccount: number,
@@ -262,29 +230,6 @@ export async function gqlTransactionsByAccount(
   );
   return data.transactionsByAccount;
 }
-
-// export async function gqlTransactionsByAccount(
-//   client: Client,
-//   idAccount: number,
-//   height?: number
-// ): Promise<GqlTransaction[]> {
-//   const data = await gql<{ transactionsByAccount: GqlTransaction[] }>(
-//     client,
-//     `query TransactionsByAccount($idAccount: Int!, $height: Int) {
-//       transactionsByAccount(idAccount: $idAccount, height: $height) {
-//         txid
-//         amount
-//         fee
-//         height
-//         confirmations
-//         address
-//         addressIndex
-//       }
-//     }`,
-//     { idAccount, height }
-//   );
-//   return data.transactionsByAccount;
-// }
 
 export async function gqlLatestHeight(client: Client): Promise<number> {
   const data = await gql<{ currentHeight: number }>(

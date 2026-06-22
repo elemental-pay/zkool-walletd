@@ -21,7 +21,7 @@ export function requestScanRouter(client: Client): Router {
 
       // Fall back to all known accounts if none specified
       const accounts = account_indices ?? getAllAccountIds();
-      console.log({ accounts })
+      console.debug({ accounts })
 
       if (accounts.length === 0) {
         res.status(400).json({ error: "No accounts to sync" });

@@ -23,7 +23,7 @@ export function createAccountRouter(client: Client): Router {
   router.post("/create_account", async (req, res) => {
     try {
       const { label, key, height }: CreateAccountRequest = req.body ?? {};
-      console.log({ label, height })
+      console.debug({ label, height })
 
       const idAccount = await gqlCreateAccount(client, {
         name: label ?? "",
@@ -49,7 +49,7 @@ export function createAccountRouter(client: Client): Router {
 
       res.json(response);
     } catch (err: any) {
-      console.log(err)
+      console.error(err)
       res.status(500).json({ error: err.message });
     }
   });

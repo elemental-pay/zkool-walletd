@@ -115,9 +115,6 @@ export interface ReceivedNoteRow {
   height: number;
   diversifier: Buffer;
   value: number;
-  rcm: Buffer;
-  nf: Buffer;
-  rho: Buffer | null;
   memo: string;
   spent: number | null;
 }
@@ -359,29 +356,6 @@ export function getTransactionsByAccount(account: number): TransactionRow[] {
 
 // ── Received Notes ────────────────────────────────────────────────────────────
 
-export function insertReceivedNote(
-  note: Omit<ReceivedNoteRow, "id_note">
-): void {
-  db.prepare(
-    `INSERT INTO received_notes
-       (address, account, sub_account, id_tx, position, height,
-        diversifier, value, rcm, nf, rho, memo, spent)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,'',0)`
-  ).run(
-    note.address,
-    note.account,
-    note.sub_account,
-    note.id_tx,
-    note.position,
-    note.height,
-    note.diversifier,
-    note.value,
-    note.rcm,
-    note.nf,
-    note.rho ?? null
-  );
-}
-
 export function markNoteSpent(nf: Buffer): void {
   db.prepare(`UPDATE received_notes SET spent = 1 WHERE nf = ?`).run(nf);
 }
@@ -430,7 +404,6 @@ export function getTransfers(
   }>;
 
   return rows.map((row) => {
-    console.log(row.txid)
     // const txid = Buffer.from(row.txid).reverse().toString("hex");
     // console.log(txid)
     const confirmationCount = latestHeight - row.height + 1;

@@ -12,15 +12,12 @@ import { getTransferByTxidRouter } from "./routes/get_transfer_by_id.js";
 import { requestScanRouter } from "./routes/request_scan.js";
 import { getTransfersRouter } from "./routes/get_transfers.js";
 
-// const WS_ENDPOINT = process.env.WS_ENDPOINT ?? "ws://localhost:8000/subscriptions";
-
 export async function createApp(client: Client, cfg: AppConfig): Promise<Express> {
   // const client = makeClient(WS_ENDPOINT);
 
   const mempool = new MempoolWatcher(client, {
     notifyTxUrl: cfg.notifyTxUrl,
     notifyBlockUrl: cfg.notifyBlockUrl,
-    // pollIntervalMs: cfg.mempoolPollMs,
   });
 
   // Watch any accounts declared at startup
@@ -28,7 +25,7 @@ export async function createApp(client: Client, cfg: AppConfig): Promise<Express
     console.log({ id })
     mempool.addAccount(id);
   }
-  // mempool.start();
+  // addAccount() immediately opens a GraphQL subscription — no separate start() needed
 
   const app = express();
   app.use(express.json());
@@ -36,7 +33,7 @@ export async function createApp(client: Client, cfg: AppConfig): Promise<Express
   app.use(createAccountRouter(client));
   app.use(createAddressRouter(client));
   app.use(getAccountsRouter(client));
-  app.use(getAddressRouter(client));
+  app.use(getAddressRouter());
   app.use(getTransferByTxidRouter(client, 1));
   app.use(requestScanRouter(client));
   app.use(getTransfersRouter(client, 1));

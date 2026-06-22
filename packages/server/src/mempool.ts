@@ -38,7 +38,7 @@ export class MempoolWatcher {
 
   constructor(client: Client, cfg: MempoolConfig = {}) {
     this.client = client;
-    this.notifyTxUrl = cfg.notifyTxUrl || 'test.localhost';
+    this.notifyTxUrl = cfg.notifyTxUrl;
     this.notifyBlockUrl = cfg.notifyBlockUrl;
   }
 
@@ -136,7 +136,7 @@ export class MempoolWatcher {
         // console.log(
         //   `[mempool] BLOCK account=${accountId} height=${event.height} hash=${event.txid}`
         // );
-        console.log({ event })
+        console.debug({ event })
         if (this.notifyBlockUrl) {
           // The `txid` field carries the block hash for BLOCK events
           notifyBlock(this.client, event.txid, this.notifyBlockUrl).catch((err) =>

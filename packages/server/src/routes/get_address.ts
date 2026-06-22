@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { getAddressesByAccount, isAddressUsed } from "../db.js";
-import { Client } from "graphql-ws";
 
 interface GetAddressRequest {
   account_index: number;
@@ -19,7 +18,7 @@ interface GetAddressResponse {
   addresses: AddressEntry[];
 }
 
-export function getAddressRouter(client: Client): Router {
+export function getAddressRouter(): Router {
   const router = Router();
 
   router.post("/get_address", (req, res) => {

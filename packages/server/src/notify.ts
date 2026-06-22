@@ -1,4 +1,4 @@
-import https from "https";
+import { Agent, fetch as ufetch } from "undici";
 import { Client } from "graphql-ws";
 
 import { confirmTransaction, createTxIfNotExists, getAddressByReceiver, getPendingTransactions, storeNotes } from "./db.js";
@@ -73,9 +73,6 @@ export async function notifyBlock(
   // const hash = reverseHex(hashHex);
 
   const pending = getPendingTransactions();
-
-  if (pending.length === 0) return;
-
   await Promise.allSettled(
     pending.map(async (tx) => {
       // const txid = Buffer.from(tx.txid).reverse().toString("hex");
@@ -94,9 +91,8 @@ export async function notifyBlock(
     })
   );
 
-  // const url = notifyBlockUrl + hash;
-  // // console.log(`[notify] block → ${url}`);
-  // await getIgnoreErrors(url);
+  const url = notifyBlockUrl + hash;
+  await getIgnoreErrors(url);
 }
 
 function reverseHex(hex: string): string {
@@ -119,16 +115,10 @@ function reverseHex(hex: string): string {
  */
 async function getIgnoreErrors(url: string): Promise<void> {
   try {
-    const agent = new https.Agent({ rejectUnauthorized: false });
-    const res = await fetch(url, {
-      // @ts-expect-error – Node 18+ fetch accepts agent via dispatcher,
-      // but for simplicity we fall back to the https.Agent trick below.
-      agent,
-    });
+    const dispatcher = new Agent({ connect: { rejectUnauthorized: false } });
+    const res = await ufetch(url, { dispatcher });
     if (!res.ok) {
-      console.warn(
-        `[notify] non-2xx response ${res.status} from ${url}`
-      );
+      console.warn(`[notify] non-2xx response ${res.status} from ${url}`);
     }
   } catch (err) {
     console.warn(`[notify] failed to notify ${url}:`, err);

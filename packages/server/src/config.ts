@@ -19,7 +19,7 @@ export function loadConfig(): AppConfig {
       process.env.WS_ENDPOINT ?? "ws://localhost:8000/subscriptions",
     port: parseInt(process.env.PORT ?? "3000", 10),
     notifyTxUrl: process.env.NOTIFY_TX_URL,
-    notifyBlockUrl: process.env.NOTIFY_BLOCK_URL || 'test.localhost',
+    notifyBlockUrl: process.env.NOTIFY_BLOCK_URL || undefined,
     watchAccounts,
   };
 }

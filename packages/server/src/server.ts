@@ -1,13 +1,5 @@
-import express, { Express } from "express";
 import { makeClient } from "./graphql.js";
-import { createAccountRouter } from "./routes/create_account.js";
-import { createAddressRouter } from "./routes/create_address.js";
-import { getAccountsRouter } from "./routes/get_accounts.js";
 import { loadConfig } from "./config.js";
-import { MempoolWatcher } from "./mempool.js";
-import { getAddressRouter } from "./routes/get_address.js";
-import { getTransferByTxidRouter } from "./routes/get_transfer_by_id.js";
-import { Client } from "graphql-ws";
 import { createApp } from "./app.js";
 import { initDb } from "./db.js";
 
@@ -40,23 +32,6 @@ async function main(): Promise<void> {
       process.exit(0);
     });
   }
-  // return app;
 }
-
-// createApp(client)
-//   .then((app) => {
-//     app.listen(PORT, () => {
-//       console.log(`RPC server listening on http://localhost:${PORT}`);
-//     });
-//   })
-//   .catch((err) => {
-//     console.error("Fatal:", err);
-//     process.exit(1);
-//   });
-
-// createApp().catch((err) => {
-//   console.error("Fatal:", err);
-//   process.exit(1);
-// });
 
 main();
