@@ -1,0 +1,231 @@
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+enum EventType {
+  BLOCK
+  TX
+  DKG
+}
+
+input AccountFilter {
+  id: Int
+  name: String
+}
+
+input NewAccount {
+  name: String!
+  key: String!
+  passphrase: String
+  aindex: Int!
+  birth: Int
+  pools: Int
+  useInternal: Boolean!
+}
+
+input Payment {
+  recipients: [Recipient!]!
+  srcPools: Int
+  recipientPaysFee: Boolean
+  confirmations: Int
+}
+
+input Recipient {
+  address: String!
+  amount: BigDecimal!
+  memo: String
+  assetDesc: String
+}
+
+input UpdateAccount {
+  name: String
+  birth: Int
+}
+
+"""
+  Big decimal type.
+
+  Allows storing any real number to arbitrary precision; which avoids common
+  floating point errors (such as 0.1 + 0.2 ≠ 0.3) at the cost of complexity.
+
+  Always serializes as `String`. But may be deserialized from `Int` and
+  `Float` values too. It's not recommended to deserialize from a `Float`
+  directly, as the floating point representation may be unexpected.
+
+  See also [`bigdecimal`] crate for details.
+
+  [`bigdecimal`]: https://docs.rs/bigdecimal
+"""
+scalar BigDecimal
+
+"""
+  Combined date and time (without time zone) in `yyyy-MM-ddTHH:mm:ss` format.
+
+  [`LocalDateTime` scalar][1] compliant.
+
+  See also [`chrono::NaiveDateTime`][2] for details.
+
+  [1]: https://graphql-scalars.dev/docs/scalars/local-date-time
+  [2]: https://docs.rs/chrono/latest/chrono/naive/struct.NaiveDateTime.html
+"""
+scalar LocalDateTime
+
+type Account {
+  id: Int!
+  name: String!
+  seed: String
+  passphrase: String
+  aindex: Int!
+  dindex: Int!
+  birth: Int!
+  height: Int!
+  balance: BigDecimal!
+  transactions: [Transaction!]!
+}
+
+type Addresses {
+  ua: String
+  transparent: String
+  sapling: String
+  orchard: String
+  diversifierIndex: BigDecimal!
+}
+
+type AssetInfo {
+  idAsset: Int!
+  assetDescHash: String!
+  assetName: String
+  ik: String!
+  assetBase: String!
+  finalized: Boolean!
+  firstSeenHeight: Int!
+  balance: BigDecimal!
+}
+
+type Balance {
+  height: Int
+  transparent: BigDecimal!
+  sapling: BigDecimal!
+  orchard: BigDecimal!
+  total: BigDecimal!
+}
+
+type Event {
+  type: EventType!
+  height: Int!
+  txid: String!
+  value: BigDecimal!
+  dkgAccount: Int!
+  notes: [UnconfirmedNote!]!
+}
+
+type Mutation {
+  createAccount(newAccount: NewAccount!): Int!
+  editAccount(idAccount: Int!, updateAccount: UpdateAccount!): Boolean!
+  deleteAccount(idAccount: Int!): Boolean!
+  resetAccount(idAccount: Int!): Boolean!
+  synchronize(idAccounts: [Int!]!, fast: Boolean): Int!
+  synchronizeAccount(idAccount: Int!, fast: Boolean): Int!
+  pay(idAccount: Int!, payment: Payment!): String!
+  """
+    Issue a new ZSA (Zcash Shielded Asset).
+
+    Returns the transaction ID of the issuance transaction.
+  """
+  issueAsset(idAccount: Int!, assetName: String!, amount: String!, firstIssuance: Boolean!, finalize: Boolean!): String!
+  """
+    Set or update the human-readable name of an asset.
+
+    This is needed for assets discovered via blockchain scan (where the
+    name is not transmitted on-chain). Also useful for renaming.
+  """
+  setAssetName(idAsset: Int!, name: String!): Boolean!
+  newAddresses(idAccount: Int!): Addresses!
+  dkgStart(name: String!, threshold: Int!, participants: Int!, messageAccount: Int!, idParticipant: Int!): String!
+  dkgCancel: Boolean!
+  dkgSetAddress(idParticipant: Int!, address: String!): Boolean!
+  doDkg: Boolean!
+  frostSign(idCoordinator: Int!, idAccount: Int!, messageAccount: Int!, pczt: String!): Boolean!
+  frostCancel: Boolean!
+}
+
+type Note {
+  id: Int!
+  height: Int!
+  pool: Int!
+  value: BigDecimal!
+  address: String!
+  scope: Int!
+  diversifier: String!
+  diversifierIndex: BigDecimal
+  memo: String
+  tx: Transaction!
+}
+
+type Output {
+  id: Int!
+  pool: Int!
+  vout: Int!
+  value: BigDecimal!
+  address: String!
+  memo: String
+}
+
+type Query {
+  apiVersion: String!
+  accounts(accountFilter: AccountFilter): [Account!]!
+  transactionsByAccount(idAccount: Int!, height: Int): [Transaction!]!
+  transactionById(idAccount: Int!, txid: String!): Transaction!
+  memosByTransaction(idAccount: Int!, idTransaction: Int!): [String!]!
+  balanceByAccount(idAccount: Int!, height: Int): Balance!
+  addressByAccount(idAccount: Int!, pools: Int): Addresses!
+  unconfirmedByAccount(idAccount: Int!): [UnconfirmedTx!]!
+  notesByAccount(idAccount: Int!): [Note!]!
+  "List all known assets with per-account unspent balances."
+  assets(idAccount: Int!): [AssetInfo!]!
+  currentHeight: Int!
+  prepareSend(idAccount: Int!, payment: Payment!): String!
+  decodePczt(pczt: String!): UnsignedTx!
+  signTx(idAccount: Int!, pczt: String!): String!
+  broadcastTx(txBytes: String!): String!
+}
+
+type Subscription {
+  events(idAccount: Int!): Event!
+}
+
+type Transaction {
+  id: Int!
+  txid: String!
+  account: Int!
+  height: Int!
+  time: LocalDateTime!
+  value: BigDecimal!
+  fee: BigDecimal!
+  notes: [Note!]!
+  outputs: [Output!]!
+  spends: [Note!]!
+}
+
+type UnconfirmedNote {
+  pool: Int!
+  scope: Int!
+  value: BigDecimal!
+  diversifier: String!
+  diversifierIndex: BigDecimal
+  address: String
+  memo: String
+}
+
+type UnconfirmedTx {
+  txid: String!
+  value: BigDecimal!
+  notes: [UnconfirmedNote!]!
+}
+
+type UnsignedTx {
+  recipients: [Output!]!
+  fee: BigDecimal!
+}
