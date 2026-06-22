@@ -6,4 +6,5 @@ export const testConfig: AppConfig = {
   notifyTxUrl: undefined,
   notifyBlockUrl: undefined,
   watchAccounts: [1],
+  confirmations: 10,
 };

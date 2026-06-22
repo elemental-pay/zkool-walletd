@@ -148,7 +148,7 @@ interface Note {
   address: string,
   scope: number,
   diversifier: string,
-  diversifierIndex: string,
+  diversifierIndex: number,
   memo: string,
   // tx: Transaction!
 }
@@ -243,6 +243,8 @@ export async function gqlTransactionsByAccount(
           address
           value
           memo
+          pool
+          scope
           diversifier
           diversifierIndex
         }

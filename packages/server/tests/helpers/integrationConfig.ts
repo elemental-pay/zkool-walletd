@@ -6,4 +6,5 @@ export const integrationConfig: AppConfig = {
   notifyTxUrl: undefined,
   notifyBlockUrl: undefined,
   watchAccounts: [1],
+  confirmations: 10,
 };

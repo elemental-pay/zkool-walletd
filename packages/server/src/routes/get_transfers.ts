@@ -2,8 +2,10 @@ import { Router } from "express";
 import { Client } from "graphql-ws";
 
 import { getAccount, getTransfers } from "../db.js";
-import { gqlLatestHeight, gqlTransactionsByAccount } from "../graphql.js";
+import { gqlLatestHeight } from "../graphql.js";
 import { Transfer } from "../db.js";
+import { AppConfig } from "../config.js";
+import { backfillAccount } from "../notify.js";
 
 interface SubaddrIndex {
   major: number;
@@ -31,7 +33,7 @@ interface GetTransfersResponse {
 
 export function getTransfersRouter(
   client: Client,
-  confirmations: number
+  cfg: AppConfig
 ): Router {
   const router = Router();
 
@@ -61,6 +63,13 @@ export function getTransfersRouter(
       }
 
       const latestHeight = await gqlLatestHeight(client);
+      const readTransfers = () =>
+        getTransfers(
+          account_index,
+          subaddr_indices,
+          latestHeight,
+          cfg.confirmations
+        );
 
       // Sync from GraphQL into local DB before reading
       // const gqlTxs = await gqlTransactionsByAccount(
@@ -71,12 +80,20 @@ export function getTransfersRouter(
       // upsertGqlTransactions(gqlTxs);
 
       // Read from local DB — already has correct Transfer shape
-      let transfers = getTransfers(
-        account_index,
-        subaddr_indices,
-        latestHeight,
-        confirmations
-      );
+      let transfers = readTransfers();
+
+      if (transfers.length === 0) {
+        try {
+          await backfillAccount(client, account_index, cfg.notifyTxUrl);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          console.warn(
+            "[get_transfers] lazy backfill failed",
+            { account: account_index, error: message }
+          );
+        }
+        transfers = readTransfers();
+      }
       // console.log(transfers[0].txid)
 
       // Apply height filters post-query if requested

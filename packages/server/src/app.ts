@@ -37,9 +37,9 @@ export async function createApp(client: Client, cfg: AppConfig): Promise<Express
   app.use(createAddressRouter(client));
   app.use(getAccountsRouter(client));
   app.use(getAddressRouter(client));
-  app.use(getTransferByTxidRouter(client, 1));
-  app.use(requestScanRouter(client));
-  app.use(getTransfersRouter(client, 1));
+  app.use(getTransferByTxidRouter(client, cfg));
+  app.use(requestScanRouter(client, cfg));
+  app.use(getTransfersRouter(client, cfg));
 
   return app;
 }

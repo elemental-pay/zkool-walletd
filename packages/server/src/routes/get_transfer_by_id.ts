@@ -3,6 +3,7 @@ import { Client } from "graphql-ws";
 
 import { getTransfersByTxid, Transfer } from "../db.js";
 import { gqlLatestHeight } from "../graphql.js";
+import { AppConfig } from "../config.js";
 
 interface GetTransferByTxidRequest {
   txid: string;
@@ -16,7 +17,7 @@ interface GetTransferByTxidResponse {
 
 export function getTransferByTxidRouter(
   client: Client,
-  confirmations: number,
+  cfg: AppConfig,
 ): Router {
   const router = Router();
 
@@ -41,7 +42,7 @@ export function getTransferByTxidRouter(
         txid,
         account_index,
         latestHeight,
-        confirmations
+        cfg.confirmations
       );
 
       if (!result) {

@@ -1,8 +1,15 @@
 import https from "https";
 import { Client } from "graphql-ws";
 
-import { confirmTransaction, createTxIfNotExists, getAddressByReceiver, getPendingTransactions, storeNotes } from "./db.js";
-import { gqlTransactionById } from "./graphql.js";
+import {
+  confirmTransaction,
+  createTxIfNotExists,
+  getAddressByReceiver,
+  getMaxHeight,
+  getPendingTransactions,
+  storeNotes,
+} from "./db.js";
+import { gqlTransactionById, gqlTransactionsByAccount } from "./graphql.js";
 import { Note, WalletEvent } from "./mempool.js";
 
 export async function notifyTx(
@@ -97,6 +104,30 @@ export async function notifyBlock(
   // const url = notifyBlockUrl + hash;
   // // console.log(`[notify] block → ${url}`);
   // await getIgnoreErrors(url);
+}
+
+export async function backfillAccount(
+  client: Client,
+  idAccount: number,
+  notifyTxUrl: string | undefined,
+): Promise<void> {
+  const sinceHeight = getMaxHeight();
+  const transactions = await gqlTransactionsByAccount(
+    client,
+    idAccount,
+    sinceHeight
+  );
+
+  for (const tx of transactions) {
+    const { isNew: isNewTransaction } = createTxIfNotExists(tx.txid, tx.height);
+    if (!isNewTransaction) continue;
+
+    storeNotes(tx.txid, tx.height, tx.notes);
+
+    if (notifyTxUrl) {
+      await getIgnoreErrors(notifyTxUrl + tx.txid);
+    }
+  }
 }
 
 function reverseHex(hex: string): string {
